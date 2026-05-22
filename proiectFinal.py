@@ -356,18 +356,21 @@ print("Image shape:", img.shape)
 fg_mask = np.zeros((rows, cols), dtype=np.uint8)
 bg_mask = np.zeros((rows, cols), dtype=np.uint8)
 
+# Convert image to grayscale - pentru a simplifica procesul de detectare a conturului obiectului, convertim imaginea in grayscale, astfel incat sa avem doar o singura valoare de intensitate pentru fiecare pixel, in loc de 3 canale de culoare (RGB)
 gray = cv2.cvtColor(
     img,
     cv2.COLOR_RGB2GRAY
 )
 
+# Threshold the image to get a binary mask - presupunem ca obiectul are culori mai inchise, iar fundalul mai deschis, deci folosim THRESH_BINARY_INV pentru a inversa masca astfel incat obiectul sa fie foreground (1) si fundalul sa fie background (0)
 _, thresh = cv2.threshold(
     gray,
     240,
     255,
-    cv2.THRESH_BINARY_INV
-)
+    cv2.THRESH_BINARY_INV #inversam culorile astfel incat obiectul sa fie foreground (1) si fundalul sa fie background (0)
+) 
 
+# Find contours - contururile reprezinta marginile obiectelor din imagine, iar noi vrem sa gasim conturul obiectului pentru a-l marca ca foreground
 contours, _ = cv2.findContours(
     thresh,
     cv2.RETR_EXTERNAL,
@@ -594,6 +597,7 @@ mask = np.zeros(
     dtype=np.uint8
 )
 
+
 for i in range(rows):
     for j in range(cols):
 
@@ -606,11 +610,31 @@ for i in range(rows):
 
 kernel = np.ones((5, 5), np.uint8)
 
+plt.figure(figsize=(12, 5))
+plt.subplot(1, 4, 1)
+plt.imshow(fg_mask, cmap="gray")
+plt.title("Foreground Mask")
+plt.axis("off")
+
+plt.subplot(1, 4, 2)
+plt.imshow(bg_mask, cmap="gray")
+plt.title("Background Mask")
+plt.axis("off")
+
+
+
+
 mask = cv2.morphologyEx(
     mask,
     cv2.MORPH_OPEN,
     kernel
 )
+
+plt.subplot(1, 4, 3)
+plt.imshow(mask, cmap="gray")
+plt.title("After Morphological Opening")
+plt.axis("off")
+
 
 mask = cv2.GaussianBlur(
     mask,
@@ -618,7 +642,15 @@ mask = cv2.GaussianBlur(
     0
 )
 
+plt.subplot(1, 4, 4)
+plt.imshow(mask, cmap="gray")
+plt.title("After Gaussian Blur")
+plt.axis("off")
 
+
+
+plt.tight_layout()
+plt.show()
 
 result = img.copy()
 
