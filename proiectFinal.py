@@ -610,18 +610,6 @@ for i in range(rows):
 
 kernel = np.ones((5, 5), np.uint8)
 
-plt.figure(figsize=(12, 5))
-plt.subplot(1, 4, 1)
-plt.imshow(fg_mask, cmap="gray")
-plt.title("Foreground Mask")
-plt.axis("off")
-
-plt.subplot(1, 4, 2)
-plt.imshow(bg_mask, cmap="gray")
-plt.title("Background Mask")
-plt.axis("off")
-
-
 
 
 mask = cv2.morphologyEx(
@@ -630,11 +618,6 @@ mask = cv2.morphologyEx(
     kernel
 )
 
-plt.subplot(1, 4, 3)
-plt.imshow(mask, cmap="gray")
-plt.title("After Morphological Opening")
-plt.axis("off")
-
 
 mask = cv2.GaussianBlur(
     mask,
@@ -642,15 +625,6 @@ mask = cv2.GaussianBlur(
     0
 )
 
-plt.subplot(1, 4, 4)
-plt.imshow(mask, cmap="gray")
-plt.title("After Gaussian Blur")
-plt.axis("off")
-
-
-
-plt.tight_layout()
-plt.show()
 
 result = img.copy()
 
