@@ -330,9 +330,6 @@ img = cv2.imread("banana.png")
 if img is None:
     raise Exception("Image not found!")
 
-# IMPORTANT:
-# Ford-Fulkerson is slow.
-# Resize to manageable dimensions.
 
 # img = cv2.resize(
 #     img,
@@ -341,6 +338,10 @@ if img is None:
 #         int(200 * img.shape[0] / img.shape[1])
 #     )
 # )
+
+img_bgr = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+b_channel, g_channel, r_channel = cv2.split(img_bgr)
+
 
 img = cv2.cvtColor(
     img,
@@ -362,6 +363,7 @@ gray = cv2.cvtColor(
     cv2.COLOR_RGB2GRAY
 )
 
+
 # Threshold the image to get a binary mask - presupunem ca obiectul are culori mai inchise, iar fundalul mai deschis, deci folosim THRESH_BINARY_INV pentru a inversa masca astfel incat obiectul sa fie foreground (1) si fundalul sa fie background (0)
 _, thresh = cv2.threshold(
     gray,
@@ -369,6 +371,10 @@ _, thresh = cv2.threshold(
     255,
     cv2.THRESH_BINARY_INV #inversam culorile astfel incat obiectul sa fie foreground (1) si fundalul sa fie background (0)
 ) 
+
+plt.imshow(thresh, cmap="gray")
+plt.title("Inverted Image")
+plt.axis("off")
 
 # Find contours - contururile reprezinta marginile obiectelor din imagine, iar noi vrem sa gasim conturul obiectului pentru a-l marca ca foreground
 contours, _ = cv2.findContours(
@@ -625,6 +631,31 @@ mask = cv2.GaussianBlur(
     0
 )
 
+
+channels = [b_channel, g_channel, r_channel, mask]
+result_transparent = cv2.merge(channels)
+result_transparent = cv2.cvtColor(
+    result_transparent,
+    cv2.COLOR_BGRA2RGBA
+)
+cv2.imwrite("banana_transparent.png", result_transparent)
+print("Imaginea transparentă a fost salvată ca 'banana_transparent.png'")
+result_plt = cv2.cvtColor(result_transparent, cv2.COLOR_BGRA2RGBA)
+
+plt.figure(figsize=(12, 5))
+
+plt.subplot(1, 2, 1)
+plt.imshow(img)
+plt.title("Original")
+plt.axis("off")
+
+plt.subplot(1, 2, 2)
+plt.imshow(result_plt)
+plt.title("Segmented (Transparent)")
+plt.axis("off")
+
+plt.tight_layout()
+plt.show()
 
 result = img.copy()
 
