@@ -287,20 +287,21 @@ def ford_fulkerson(graph, source, sink):
     max_flow = 0
 
     while True:
-
+# pentru a gasi un drum de la sursa la destinatie cu capacitate disponibila, folosim BFS pentru a parcurge graful si a inregistra parintii nodurilor vizitate, astfel incat sa putem reconstrui drumul gasit
         parent = [None] * graph.n
-
+# daca nu mai exista un drum de la sursa la destinatie cu capacitate disponibila, inseamna ca am atins fluxul maxim si iesim din bucla
         if not bfs(graph, source, sink, parent):
             break
-
+# daca am gasit un drum, determinam fluxul maxim care poate fi trimis pe acest drum, adica minimul capacitatii muchiilor de pe drum, parcurgand drumul de la destinatie la sursa folosind parintii inregistrati in BFS
         path_flow = float("inf")
 
         v = sink
-
+        # parcurgem drumul de la destinatie la sursa folosind parintii inregistrati in BFS pentru a determina fluxul maxim care poate fi trimis pe acest drum, 
+        # adica minimul capacitatii muchiilor de pe drum
         while v != source:
 
             u, edge = parent[v]
-
+# pentru fiecare muchie de pe drum, actualizam path_flow cu minimul dintre path_flow curent si capacitatea muchiei, astfel incat la final sa avem fluxul maxim care poate fi trimis pe acest drum
             path_flow = min(
                 path_flow,
                 edge.capacity
@@ -309,16 +310,17 @@ def ford_fulkerson(graph, source, sink):
             v = u
 
         v = sink
-
+# dupa ce am determinat fluxul maxim care poate fi trimis pe acest drum, actualizam capacitatile muchiilor de pe drum scazand fluxul trimis din capacitatea muchiei directe si adaugand fluxul trimis la capacitatea muchiei inverse 
+# (pentru a permite posibile reveniri in iteratiile urmatoare)
         while v != source:
 
             u, edge = parent[v]
-
+# actualizam capacitatea muchiei directe scazand fluxul trimis, astfel incat sa reflecte capacitatea ramasa dupa trimiterea fluxului pe acest drum
             edge.capacity -= path_flow
             edge.rev.capacity += path_flow
 
             v = u
-
+# adaugam fluxul trimis pe acest drum la fluxul total, astfel incat la final sa avem fluxul maxim care poate fi trimis de la sursa la destinatie
         max_flow += path_flow
 
     return max_flow
@@ -364,7 +366,8 @@ gray = cv2.cvtColor(
 )
 
 
-# Threshold the image to get a binary mask - presupunem ca obiectul are culori mai inchise, iar fundalul mai deschis, deci folosim THRESH_BINARY_INV pentru a inversa masca astfel incat obiectul sa fie foreground (1) si fundalul sa fie background (0)
+# Threshold the image to get a binary mask - presupunem ca obiectul are culori mai inchise, iar fundalul mai deschis, 
+# deci folosim THRESH_BINARY_INV pentru a inversa masca astfel incat obiectul sa fie foreground (1) si fundalul sa fie background (0)
 _, thresh = cv2.threshold(
     gray,
     240,
@@ -376,7 +379,8 @@ plt.imshow(thresh, cmap="gray")
 plt.title("Inverted Image")
 plt.axis("off")
 
-# Find contours - contururile reprezinta marginile obiectelor din imagine, iar noi vrem sa gasim conturul obiectului pentru a-l marca ca foreground
+# Find contours - contururile reprezinta marginile obiectelor din imagine, iar
+# noi vrem sa gasim conturul obiectului pentru a-l marca ca foreground
 contours, _ = cv2.findContours(
     thresh,
     cv2.RETR_EXTERNAL,
@@ -439,7 +443,7 @@ def gaussian_cost(color, mean, var):
 
 def pixel_to_node(i, j):
 
-    return i * cols + j
+    return i * cols + j 
 
 
 
@@ -453,7 +457,7 @@ V = num_pixels + 2
 g = Graph(V)
 
 
-
+#
 for i in range(rows):
     for j in range(cols):
 
@@ -583,34 +587,34 @@ visited = [False] * V
 
 queue = deque([source])
 
-visited[source] = True
-
+visited[source] = True 
+# marcam nodul sursa ca vizitat pentru a incepe BFS-ul din sursa, astfel incat sa putem determina care noduri sunt in componenta conexa a sursei (foreground) si care nu (background)
 while queue:
 
     u = queue.popleft()
 
     for edge in g.adj[u]:
 
-        if edge.capacity > 0 and not visited[edge.to]:
+        if edge.capacity > 0 and not visited[edge.to]: 
 
             visited[edge.to] = True
             queue.append(edge.to)
 
 
-
+# daca un nod este vizitat, inseamna ca face parte din componenta conexa a sursei, adica este considerat foreground, altfel este background. Astfel, construim o masca binara in care pixelii foreground sunt albi (255) si pixelii background sunt negri (0)
 mask = np.zeros(
     (rows, cols),
     dtype=np.uint8
 )
 
-
+# parcurgem fiecare pixel si verificam daca nodul corespunzator este vizitat sau nu, pentru a construi masca finala care va fi folosita pentru a extrage obiectul din imagine
 for i in range(rows):
     for j in range(cols):
 
         node = pixel_to_node(i, j)
 
         if visited[node]:
-            mask[i, j] = 255
+            mask[i, j] = 255 # foreground
 
 
 
@@ -639,23 +643,8 @@ result_transparent = cv2.cvtColor(
     cv2.COLOR_BGRA2RGBA
 )
 cv2.imwrite("banana_transparent.png", result_transparent)
-print("Imaginea transparentă a fost salvată ca 'banana_transparent.png'")
+print("Imaginea transparenta a fost salvata ca 'banana_transparent.png'")
 result_plt = cv2.cvtColor(result_transparent, cv2.COLOR_BGRA2RGBA)
-
-plt.figure(figsize=(12, 5))
-
-plt.subplot(1, 2, 1)
-plt.imshow(img)
-plt.title("Original")
-plt.axis("off")
-
-plt.subplot(1, 2, 2)
-plt.imshow(result_plt)
-plt.title("Segmented (Transparent)")
-plt.axis("off")
-
-plt.tight_layout()
-plt.show()
 
 result = img.copy()
 
